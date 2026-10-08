@@ -77,10 +77,19 @@ router.post("/login", async (req, res) => {
     name: user.name,
     email: user.email,
   };
-  res.json({
-    id: user.id,
-    name: user.name,
-    email: user.email,
+
+  req.session.save((error) => {
+    if (error) {
+      return res.status(500).json({
+        message: "로그인 세션 저장 중 오류가 발생했습니다.",
+      });
+    }
+
+    res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
   });
 });
 
