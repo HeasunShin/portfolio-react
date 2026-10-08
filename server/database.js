@@ -17,6 +17,12 @@ db.exec(`
   )
 `);
 
+const projectColumns = db.prepare("PRAGMA table_info(projects)").all();
+const hasUserId = projectColumns.some((column) => column.name === "user_id");
+if (!hasUserId) {
+  db.exec(` ALTER TABLE projects ADD COLUMN user_id INTEGER `);
+}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,

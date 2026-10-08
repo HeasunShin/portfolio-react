@@ -3,9 +3,17 @@ const db = require("../database");
 
 const router = express.Router();
 
-// 프로젝트 전체 조회
+// 로그인한 사용자의 프로젝트만 조회
 router.get("/", (req, res) => {
-  const projects = db.prepare("SELECT * FROM projects").all();
+  if (!req.session.user) {
+    return res.status(401).json({
+      message: "로그인이 필요합니다.",
+    });
+  }
+
+  const projects = db
+    .prepare("SELECT * FROM projects WHERE user_id = ?")
+    .all(req.session.user.id);
 
   res.json(projects);
 });
@@ -27,6 +35,13 @@ router.get("/:id", (req, res) => {
 
 // 프로젝트 생성
 router.post("/", (req, res) => {
+  // 로그인한 사용자만 프로젝트를 생성할 수 있음
+  if (!req.session.user) {
+    return res.status(401).json({
+      message: "로그인이 필요합니다.",
+    });
+  }
+
   const { name, description, progress, status, manager, startDate, dueDate } =
     req.body;
 
@@ -46,11 +61,20 @@ router.post("/", (req, res) => {
     .prepare(
       `
       INSERT INTO projects
-      (name, description, progress, status, manager, startDate, dueDate)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      (name, description, progress, status, manager, startDate, dueDate, user_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `,
     )
-    .run(name, description, progress, status, manager, startDate, dueDate);
+    .run(
+      name,
+      description,
+      progress,
+      status,
+      manager,
+      startDate,
+      dueDate,
+      req.session.user.id,
+    );
 
   res.json({
     id: result.lastInsertRowid,
@@ -61,6 +85,7 @@ router.post("/", (req, res) => {
     manager,
     startDate,
     dueDate,
+    user_id: req.session.user.id,
   });
 });
 
