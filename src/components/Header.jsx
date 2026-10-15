@@ -50,7 +50,13 @@ function Header({ user, setUser }) {
                 Resources
               </a>
             </li>
-
+            {user && (
+              <li>
+                <Link to="/dashboard" className="hover:text-gray-500">
+                  대시보드
+                </Link>
+              </li>
+            )}
             {/* 모바일 메뉴 */}
             <li className="md:hidden border-t border-gray-200 pt-6 mt-2">
               <a href="#" className="hover:text-gray-500">

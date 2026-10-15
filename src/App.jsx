@@ -10,6 +10,7 @@ import ProjectDetail from "./pages/ProjectDetail";
 import ProjectEdit from "./pages/ProjectEdit";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
   // 데이터 끌어올리기(프로젝트 데이터를 App에서 관리하도록 끌어올림)
@@ -43,6 +44,7 @@ function App() {
             path="/projects"
             element={<Projects projects={projects} setProjects={setProjects} />}
           />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
           {/* 데이터 끌어올리기(ProjectEdit에 프로젝트 데이터와 수정 함수를 전달) */}
           <Route

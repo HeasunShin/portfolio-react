@@ -7,10 +7,14 @@ const usersRouter = require("./routes/users");
 const session = require("express-session");
 
 const app = express();
+const isProduction = process.env.NODE_ENV === "production";
 
 app.use(
   cors({
-    origin: "https://portfolio-react-frontend-9vqc.onrender.com",
+    origin: [
+      "http://localhost:5173",
+      "https://portfolio-react-frontend-9vqc.onrender.com",
+    ],
     credentials: true,
   }),
 );
@@ -22,8 +26,8 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: true,
-      sameSite: "none",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
     },
   }),
 );

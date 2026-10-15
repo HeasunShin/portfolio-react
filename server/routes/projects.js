@@ -18,11 +18,21 @@ router.get("/", (req, res) => {
   res.json(projects);
 });
 
-// 프로젝트 상세 조회
+// 로그인한 사용자의 프로젝트 상세 조회
 router.get("/:id", (req, res) => {
+  // 로그인 확인
+  if (!req.session.user) {
+    return res.status(401).json({
+      message: "로그인이 필요합니다.",
+    });
+  }
+
   const { id } = req.params;
 
-  const project = db.prepare("SELECT * FROM projects WHERE id = ?").get(id);
+  // 현재 사용자가 소유한 프로젝트만 조회
+  const project = db
+    .prepare("SELECT * FROM projects WHERE id = ? AND user_id = ?")
+    .get(id, req.session.user.id);
 
   if (!project) {
     return res.status(404).json({
@@ -89,11 +99,21 @@ router.post("/", (req, res) => {
   });
 });
 
-// 프로젝트 삭제
+// 로그인한 사용자의 프로젝트만 삭제
 router.delete("/:id", (req, res) => {
-  const { id } = req.params;
+  // 로그인 확인
+  if (!req.session.user) {
+    return res.status(401).json({
+      message: "로그인이 필요합니다.",
+    });
+  }
 
-  const result = db.prepare("DELETE FROM projects WHERE id = ?").run(id);
+  const { id } = req.params;
+  const userId = req.session.user.id;
+
+  const result = db
+    .prepare("DELETE FROM projects WHERE id = ? AND user_id = ?")
+    .run(id, userId);
 
   if (result.changes === 0) {
     return res.status(404).json({
@@ -107,10 +127,18 @@ router.delete("/:id", (req, res) => {
   });
 });
 
-// 프로젝트 수정
+// 로그인한 사용자의 프로젝트만 수정
 router.patch("/:id", (req, res) => {
+  // 로그인 확인
+  if (!req.session.user) {
+    return res.status(401).json({
+      message: "로그인이 필요합니다.",
+    });
+  }
+
   const { id } = req.params;
   const { name, description, progress, manager } = req.body;
+  const userId = req.session.user.id;
 
   if (typeof progress !== "number" || progress < 0 || progress > 100) {
     return res.status(400).json({
@@ -127,10 +155,10 @@ router.patch("/:id", (req, res) => {
         description = ?,
         progress = ?,
         manager = ?
-      WHERE id = ?
-    `,
+      WHERE id = ? AND user_id = ?
+      `,
     )
-    .run(name, description, progress, manager, id);
+    .run(name, description, progress, manager, id, userId);
 
   if (result.changes === 0) {
     return res.status(404).json({
@@ -138,7 +166,9 @@ router.patch("/:id", (req, res) => {
     });
   }
 
-  const project = db.prepare("SELECT * FROM projects WHERE id = ?").get(id);
+  const project = db
+    .prepare("SELECT * FROM projects WHERE id = ? AND user_id = ?")
+    .get(id, userId);
 
   res.json(project);
 });
